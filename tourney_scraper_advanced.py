@@ -8,11 +8,8 @@ r = s.get(url)
 r.html.render(sleep=1)
 print(r.status_code)
 
-tournaments = r.html.find('div.csa-search-result-item')
+tournaments = r.html.find('div.csa-results', first=True).absolute_links
+#print(tournaments)
 
 for tourney in tournaments:
-    link = tourney.absolute_links
-    r = s.get(link)
-    #title = r.html.find('div.MuiGrid-grid-md-9').text
-    print(r.status_code)
-    print(link)
+    r = s.get(tourney)
