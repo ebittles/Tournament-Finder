@@ -106,8 +106,10 @@ headers = {
 
 response = requests.request("POST", url, json=payload, headers=headers, params=querystring).text
 res_dict = json.loads(response)
-#print(res_dict)
-df = pd.DataFrame(res_dict)
+range = [i['distance'] for i in res_dict['searchResults']]
+
+df = pd.DataFrame(res_dict['searchResults'])
 df.to_csv('tournaments.csv')
 print("Saved to CSV")
+
 #print(response.text)
