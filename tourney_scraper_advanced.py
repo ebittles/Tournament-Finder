@@ -108,22 +108,25 @@ headers = {
 response = requests.request("POST", url, json=payload, headers=headers, params=querystring).text
 res_dict = json.loads(response)
 
-ids = []
-names = {"Tournament":[], "Names":[]}
+#ts = {"titles": [], "ids": []}
+ts = {}
+ov_list = []
 
 for tourney in res_dict['searchResults']:
-    name = tourney['item']['name']
+    t_title = tourney['item']['name']
     range = tourney['distance']
     #url = tourney['item']['url']
     id = tourney['item']['id']
     #print(name)
-    ids.append(id)
-    names['Tournament'].append(name)
+    ts[t_title] = id
+    #ts["ids"].append(id)
+    #ts["titles"].append(t_title)
     #print(range)
 
 #print(ids)
 
-for each_id in ids:
+for each_title, each_id in ts.items():
+    players_list = []
     specific_url = "https://prd-usta-kube-tournaments.clubspark.pro/"
 
 
@@ -247,18 +250,19 @@ for each_id in ids:
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "cross-site"
     }
-
     players_json = requests.request("POST", specific_url, json=payload, headers=headers).text
     p_list = json.loads(players_json)
     items_list = p_list['data']['paginatedPublicTournamentRegistrations']['items']
     for name in items_list:
         first_name = name['firstName']
-        names['Names'].append(first_name)
+        players_list.append(first_name)
+
+    ov_list.append({"Title": each_title, "Names": players_list})
 
 
-print(names)
-"""
-df = pd.DataFrame(names)
+#print(p_names['Tournament']['Name'])
+#print(ov_list)
+
+df = pd.DataFrame(ov_list)
 df.to_csv('players.csv')
 print("Players to CSV")
-"""
