@@ -108,25 +108,21 @@ headers = {
 response = requests.request("POST", url, json=payload, headers=headers, params=querystring).text
 res_dict = json.loads(response)
 
-#ts = {"titles": [], "ids": []}
+#dictionary of tournament title:tournament id
 ts = {}
+#overview of tournament and players
 ov_list = []
 
+#gets tournament title and id from USTA main and appends to ts
 for tourney in res_dict['searchResults']:
     t_title = tourney['item']['name']
     range = tourney['distance']
-    #url = tourney['item']['url']
     id = tourney['item']['id']
-    #print(name)
     ts[t_title] = id
-    #ts["ids"].append(id)
-    #ts["titles"].append(t_title)
-    #print(range)
 
-#print(ids)
-
+#gets players for each tournament and appends them to ov_list
 for each_title, each_id in ts.items():
-    players_list = []
+    players_list = {}
     specific_url = "https://prd-usta-kube-tournaments.clubspark.pro/"
 
 
@@ -253,15 +249,16 @@ for each_title, each_id in ts.items():
     players_json = requests.request("POST", specific_url, json=payload, headers=headers).text
     p_list = json.loads(players_json)
     items_list = p_list['data']['paginatedPublicTournamentRegistrations']['items']
-    for name in items_list:
-        first_name = name['firstName']
-        players_list.append(first_name)
+    for player_info in items_list:
+        playerName = player_info['playerName']
+        playerGender = player_info['gender']
+        playerEvents = player_info['events']
+        for events in playerEvents:
+            playerDivision = events['division']['ageCategory']['todsCode']
+            if playerGender == "MALE" and playerDivision == "U16":
+                players_list[playerName] = playerGender, playerDivision
 
     ov_list.append({"Title": each_title, "Names": players_list})
-
-
-#print(p_names['Tournament']['Name'])
-#print(ov_list)
 
 df = pd.DataFrame(ov_list)
 df.to_csv('players.csv')
