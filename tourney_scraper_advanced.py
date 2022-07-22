@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 import json
+import requests
 
 url = "https://prd-usta-kube.clubspark.pro/unified-search-api/api/Search/tournaments/Query"
 
@@ -106,10 +107,153 @@ headers = {
 
 response = requests.request("POST", url, json=payload, headers=headers, params=querystring).text
 res_dict = json.loads(response)
-range = [i['distance'] for i in res_dict['searchResults']]
 
-df = pd.DataFrame(res_dict['searchResults'])
-df.to_csv('tournaments.csv')
-print("Saved to CSV")
+players = {}
 
-#print(response.text)
+for tourney in res_dict['searchResults']:
+    name = tourney['item']['name']
+    range = tourney['distance']
+    #url = tourney['item']['url']
+    id = tourney['item']['id']
+    #print(name)
+    #print(id)
+    #print(range)
+
+
+    specific_url = "https://prd-usta-kube-tournaments.clubspark.pro/"
+
+
+    payload = {
+        "operationName": "GetPlayers",
+        "variables": {
+            "id": id,
+            "queryParameters": {
+                "limit": 0,
+                "offset": 0,
+                "sorts": [
+                    {
+                        "property": "playerLastName",
+                        "sortDirection": "ASCENDING"
+                    }
+                ],
+                "filters": []
+            }
+        },
+        "query": """query GetPlayers($id: UUID!, $queryParameters: QueryParametersPaged!) {
+    paginatedPublicTournamentRegistrations(
+        tournamentId: $id
+        queryParameters: $queryParameters
+    ) {
+        totalItems
+        items {
+        firstName: playerFirstName
+        gender: playerGender
+        lastName: playerLastName
+        city: playerCity
+        state: playerState
+        playerName
+        playerId {
+            key
+            value
+            __typename
+        }
+        playerCustomIds {
+            key
+            value
+            __typename
+        }
+        eventEntries {
+            eventId
+            players {
+            firstName
+            lastName
+            customId {
+                key
+                value
+                __typename
+            }
+            customIds {
+                key
+                value
+                __typename
+            }
+            __typename
+            }
+            __typename
+        }
+        events {
+            id
+            division {
+            ballColour
+            gender
+            ageCategory {
+                todsCode
+                minimumAge
+                maximumAge
+                type
+                __typename
+            }
+            eventType
+            wheelchairRating
+            familyType
+            ratingCategory {
+                ratingType
+                ratingCategoryType
+                value
+                minimumValue
+                maximumValue
+                __typename
+            }
+            __typename
+            }
+            level {
+            name
+            category
+            __typename
+            }
+            formatConfiguration {
+            ballColour
+            drawSize
+            entriesLimit
+            eventFormat
+            scoreFormat
+            selectionProcess
+            __typename
+            }
+            __typename
+        }
+        __typename
+        }
+        __typename
+    }
+    }
+    """
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:102.0) Gecko/20100101 Firefox/102.0",
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://playtennis.usta.com/",
+        "content-type": "application/json",
+        "Origin": "https://playtennis.usta.com",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "cross-site"
+    }
+
+    response1 = requests.request("POST", specific_url, json=payload, headers=headers).text
+    players['tournament'] = response1
+
+p_list = json.loads(players['tournament'])
+items_list = p_list['data']['paginatedPublicTournamentRegistrations']['items']
+for name in items_list:
+    first_name = name['firstName']
+    print(first_name)
+
+#df = pd.DataFrame(first_name)
+#df.to_csv('players.csv')
+#print("Players to CSV")
+
