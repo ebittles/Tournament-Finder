@@ -3,6 +3,29 @@ import pandas as pd
 import json
 import requests
 from datetime import date, timedelta
+import creds
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from tabulate import tabulate
+
+def email_new(df):
+    message = MIMEMultipart()
+    message["Subject"] = "Tournament List"
+    message["From"] = creds.sender
+    message["To"] = creds.recipient
+
+    html = MIMEText(df.to_html(index=False), "html")
+    message.attach(html)
+    with smtplib.SMTP("smtp.office365.com", 587) as server:
+        print("starting server")
+        server.starttls()
+        print("server start")
+        server.login(creds.sender, creds.password)
+        print("login")
+        server.sendmail(creds.sender, creds.recipient, message.as_string())
+        print("sent")
+
 
 today = date.today()
 next_month = today + timedelta(days=30)
@@ -116,9 +139,6 @@ res_dict = json.loads(response)
 ts = {}
 #overview of tournament and players
 ov_list = []
-
-#def point_sys(level, range, points):
-
 
 
 #gets tournament title and id from USTA main and appends to ts
@@ -287,6 +307,21 @@ for each_title, each_id in ts.items():
     ov_list.append({"Title": each_id[1] +": " + each_title, "Points": each_id[2], "Names": players_list})
 
 sorted_list = sorted(ov_list, key=lambda x: x['Points'], reverse=True)
+del_points = 'Points'
+for t in sorted_list:
+    if del_points in t:
+        del t[del_points]
 df = pd.DataFrame(sorted_list)
-df.to_csv('players.csv')
-print("Players to CSV")
+df.index += 1
+#print(df)
+#email_new(df)
+#df.to_csv('players.csv')
+#content = (tabulate(df, headers='keys', tablefmt= 'psql'))
+print(type(df))
+email_new(df)
+
+"""
+text_file = open("players.csv", 'w')
+text_file.write(content)
+text_file.close()
+"""
