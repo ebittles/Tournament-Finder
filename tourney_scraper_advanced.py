@@ -1,7 +1,6 @@
 import requests
 import pandas as pd
 import json
-import requests
 from datetime import date, timedelta, datetime
 import creds
 import smtplib
