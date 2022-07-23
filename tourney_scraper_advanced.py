@@ -2,6 +2,10 @@ import requests
 import pandas as pd
 import json
 import requests
+from datetime import date, timedelta
+
+today = date.today()
+next_month = today + timedelta(days=30)
 
 url = "https://prd-usta-kube.clubspark.pro/unified-search-api/api/Search/tournaments/Query"
 
@@ -46,8 +50,8 @@ payload = {
             "key": "date-range",
             "items": [
                 {
-                    "minDate": "2022-07-21T00:00:00.000Z",
-                    "maxDate": "2022-08-31T23:59:59.999Z"
+                    "minDate": str(today)+"T00:00:00.000Z",
+                    "maxDate": str(next_month)+"T23:59:59.999Z"
                 }
             ],
             "operator": "Or"
@@ -144,7 +148,7 @@ for tourney in res_dict['searchResults']:
 
 #gets players for each tournament and appends them to ov_list
 for each_title, each_id in ts.items():
-    players_list = {}
+    players_list = []
     specific_url = "https://prd-usta-kube-tournaments.clubspark.pro/"
 
 
@@ -278,9 +282,9 @@ for each_title, each_id in ts.items():
         for events in playerEvents:
             playerDivision = events['division']['ageCategory']['todsCode']
             if playerGender == "MALE" and playerDivision == "U16":
-                players_list[playerName] = playerGender, playerDivision
+                players_list.append(playerName)
 
-    ov_list.append({"Title": each_title, "Level": each_id[1], "Points": each_id[2], "Range": each_id[3], "Names": players_list})
+    ov_list.append({"Title": each_id[1] +": " + each_title, "Points": each_id[2], "Names": players_list})
 
 sorted_list = sorted(ov_list, key=lambda x: x['Points'], reverse=True)
 df = pd.DataFrame(sorted_list)
