@@ -2,6 +2,11 @@
 Scrapes USTA website and emails results
 
 
-Currently WIP
-- Can get list of tournament data
-- (WIP) Getting Players for each tournament
+Scraper Advanced Checklist
+- Completed
+    - Can get list of tournament data
+    - Getting players for each tournament
+- WIP
+    - Get tournament level
+    - Order results based on level and distance
+    - Email results in readable format

@@ -113,12 +113,34 @@ ts = {}
 #overview of tournament and players
 ov_list = []
 
+#def point_sys(level, range, points):
+
+
+
 #gets tournament title and id from USTA main and appends to ts
 for tourney in res_dict['searchResults']:
+    points_t = 0
     t_title = tourney['item']['name']
-    range = tourney['distance']
+    range_t = float(tourney['distance'])
     id = tourney['item']['id']
-    ts[t_title] = id
+    level_full = tourney['item']['level']['name']
+    level_s = level_full[:7]
+
+
+    if level_s == "Level 4" or level_s == "Level 3":
+        points_t += 60
+    elif level_s == "Level 5":
+        points_t += 35
+    elif level_s == "Level 6":
+        points_t += 20
+    
+    if range_t <= 120.0:
+        points_t += 40
+    elif 120.0 < range_t <= 200.0:
+        points_t += 25
+
+
+    ts[t_title] = id, level_s, points_t, range_t
 
 #gets players for each tournament and appends them to ov_list
 for each_title, each_id in ts.items():
@@ -129,7 +151,7 @@ for each_title, each_id in ts.items():
     payload = {
         "operationName": "GetPlayers",
         "variables": {
-            "id": each_id,
+            "id": each_id[0],
             "queryParameters": {
                 "limit": 0,
                 "offset": 0,
@@ -258,8 +280,9 @@ for each_title, each_id in ts.items():
             if playerGender == "MALE" and playerDivision == "U16":
                 players_list[playerName] = playerGender, playerDivision
 
-    ov_list.append({"Title": each_title, "Names": players_list})
+    ov_list.append({"Title": each_title, "Level": each_id[1], "Points": each_id[2], "Range": each_id[3], "Names": players_list})
 
-df = pd.DataFrame(ov_list)
+sorted_list = sorted(ov_list, key=lambda x: x['Points'], reverse=True)
+df = pd.DataFrame(sorted_list)
 df.to_csv('players.csv')
 print("Players to CSV")
