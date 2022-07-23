@@ -1,3 +1,3 @@
 sender = ""
-recipient = ""
 password = ""
+recipient = ""

@@ -7,7 +7,6 @@ import creds
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from tabulate import tabulate
 
 def email_new(df):
     message = MIMEMultipart()
@@ -18,14 +17,9 @@ def email_new(df):
     html = MIMEText(df.to_html(index=False), "html")
     message.attach(html)
     with smtplib.SMTP("smtp.office365.com", 587) as server:
-        print("starting server")
         server.starttls()
-        print("server start")
         server.login(creds.sender, creds.password)
-        print("login")
         server.sendmail(creds.sender, creds.recipient, message.as_string())
-        print("sent")
-
 
 today = date.today()
 next_month = today + timedelta(days=30)
@@ -313,15 +307,6 @@ for t in sorted_list:
         del t[del_points]
 df = pd.DataFrame(sorted_list)
 df.index += 1
-#print(df)
-#email_new(df)
-#df.to_csv('players.csv')
-#content = (tabulate(df, headers='keys', tablefmt= 'psql'))
-print(type(df))
+
 email_new(df)
 
-"""
-text_file = open("players.csv", 'w')
-text_file.write(content)
-text_file.close()
-"""

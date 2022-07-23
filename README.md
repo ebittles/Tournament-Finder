@@ -1,12 +1,11 @@
-# Tournament-Finder
-Scrapes USTA website and emails results
+### Tournament-Finder
 
+## Tournament_Scraper_Advanced
+- Currently only working scraper
+- Gets tournaments from USTA and emails them to you sorted by location and level
+- Need to edit creds.py with sender email, sender password and reciever email
 
-Scraper Advanced Checklist
-- Completed
-    - Can get list of tournament data
-    - Getting players for each tournament
 - WIP
-    - Get tournament level
-    - Order results based on level and distance
-    - Email results in readable format
+    - Prettify Code
+    - Make Faster
+    - Cron job or something to run every two weeks
