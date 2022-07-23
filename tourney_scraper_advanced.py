@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 import json
 import requests
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import creds
 import smtplib
 from email.mime.text import MIMEText
@@ -22,6 +22,7 @@ def email_new(df):
         server.sendmail(creds.sender, creds.recipient, message.as_string())
 
 today = date.today()
+today_w_sec = datetime.now()
 next_month = today + timedelta(days=30)
 
 url = "https://prd-usta-kube.clubspark.pro/unified-search-api/api/Search/tournaments/Query"
@@ -141,8 +142,15 @@ for tourney in res_dict['searchResults']:
     t_title = tourney['item']['name']
     range_t = float(tourney['distance'])
     id = tourney['item']['id']
+    url_seg = tourney['item']['organization']['urlSegment']
+    url = tourney['item']['url']
+    full_url = "https://playtennis.usta.com/Competitions/" + url_seg + url
     level_full = tourney['item']['level']['name']
     level_s = level_full[:7]
+    start_date = tourney['item']['startDateTime'][:10]
+    sDate_format = datetime.strptime(start_date, '%Y-%m-%d').ctime()
+    entries_close = tourney['item']['registrationRestrictions']['entriesCloseDateTime'].replace("T", " ").replace("Z", "")
+    close_date = datetime.strptime(entries_close, '%Y-%m-%d %H:%M:%S')
 
 
     if level_s == "Level 4" or level_s == "Level 3":
@@ -158,7 +166,7 @@ for tourney in res_dict['searchResults']:
         points_t += 25
 
 
-    ts[t_title] = id, level_s, points_t, range_t
+    ts[t_title] = id, level_s, points_t, range_t, full_url, close_date, sDate_format
 
 #gets players for each tournament and appends them to ov_list
 for each_title, each_id in ts.items():
@@ -297,8 +305,9 @@ for each_title, each_id in ts.items():
             playerDivision = events['division']['ageCategory']['todsCode']
             if playerGender == "MALE" and playerDivision == "U16":
                 players_list.append(playerName)
-
-    ov_list.append({"Title": each_id[1] +": " + each_title, "Points": each_id[2], "Names": players_list})
+    if each_id[5] > today_w_sec:
+        cDate_format = datetime.ctime(each_id[5])
+        ov_list.append({"Date": each_id[6], "Title": each_id[1] +": " + each_title, "Points": each_id[2], "URL": each_id[4], "Entries Close": cDate_format, "Names": players_list})
 
 sorted_list = sorted(ov_list, key=lambda x: x['Points'], reverse=True)
 del_points = 'Points'
